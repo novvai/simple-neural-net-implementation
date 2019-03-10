@@ -1,0 +1,17 @@
+{
+  "name": "3djs",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {},
+  "devDependencies": {
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.2.2",
+    "webpack": "^4.28.4",
+    "webpack-cli": "^3.2.1"
+  },
+  "scripts": {
+    "build:dev": "webpack --watch --mode=development"
+  },
+  "author": "",
+  "license": "ISC"
+}
