@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // console.log(accuracy)
 
     // Define network;
-    let ColorClassifier = new NeuralNetV2(3,2,10000, .01)
+    let ColorClassifier = new NeuralNetV2(3,2,100, .01)
     ColorClassifier.addHiddenLayer(64);
     
     ColorClassifier.training(trSet, lblSet)
