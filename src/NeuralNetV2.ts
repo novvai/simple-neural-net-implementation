@@ -7,14 +7,15 @@ export class NeuralNetV2 {
     private layers: Array<Matrix> = [];
     private learning_rate: number;
     private memory: Array<Matrix> = [];
+    private activation_func: String = `relu`;
     private epocs: number;
 
-    constructor(input_nodes: number, out_nodes: number, epocs: number = 100, learning_rate: number = 0.1) {
+    constructor(input_nodes: number, out_nodes: number, epocs: number = 100, learning_rate: number = 0.1, activation_function:string="relu") {
         this.input_nodes = input_nodes;
         this.out_nodes = out_nodes;
         this.epocs = epocs;
         this.learning_rate = learning_rate;
-        // this.bootstrap();
+        this.activation_func = activation_function;
     }
 
     public addHiddenLayer(nodes: number) {
@@ -152,5 +153,26 @@ export class NeuralNetV2 {
      */
     private sigmoid(x: number): number {
         return 1 / (1 + Math.exp(-x));
+    }
+    /**
+     * Activation function
+     * 
+     * @param x {number}
+     * @returns {number}
+     */
+    private relu(x: number): number {
+        return Math.max(0,x);
+    }
+
+    public getActivationFunc(){
+        switch (this.activation_func) {
+            case 'relu':
+                return this.relu;
+            case 'sigmoid':
+                return this.sigmoid;
+            default:
+                throw(`Error: ${this.activation_func} not found!`)
+                break;
+        }
     }
 }

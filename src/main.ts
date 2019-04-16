@@ -88,8 +88,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // console.log(accuracy)
 
     // Define network;
-    let ColorClassifier = new NeuralNetV2(3,2,100, .01)
+    let ColorClassifier = new NeuralNetV2(3,1,600, .01)
     ColorClassifier.addHiddenLayer(64);
+    ColorClassifier.create();
     
     ColorClassifier.training(trSet, lblSet)
 
@@ -106,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // return e;
         });
         let result = ColorClassifier.feedForwad(inputs)[0].toArray()[0][0];
-        console.log(result)
+        console.log(ColorClassifier.feedForwad(inputs)[0].toArray())
         if (result > 0.50) {
             res!.style.color = 'white';
         } else {
