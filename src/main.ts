@@ -96,7 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let btn = document.querySelector(".predict");
     btn!.addEventListener('click', () => {
-        let inputs = document.querySelector('.inputs')!.value;
+        let inputs:any = document.querySelector('.inputs');
+        inputs = inputs!.value;
+        
         let res:HTMLElement|null = document.querySelector('.result');
         console.log(inputs);
 
