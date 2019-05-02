@@ -41,8 +41,11 @@ export class NeuralNetV2 {
         this.bootstrap();
     }
     private bootstrap() {
-        this.layers.forEach(layer => {
-            this.layer_gradiant.push(new Matrix(layer.getRows(), layer.getCols()));
+        this.layers.forEach((layer, index) => {
+            // we are resseting the layer gradient by ini new matrix
+            // but the last layer has 1 coll in addition so we check if its the last layer and init with one less
+            // Math purpouse
+            this.layer_gradiant.push(new Matrix(layer.getRows(), index != this.layers.length - 1 ? layer.getCols() : layer.getCols() - 1));
             layer.randomize();
         });
     }
@@ -79,7 +82,7 @@ export class NeuralNetV2 {
 
     public training(inputs_arr: Array<Array<number>>, answers: Array<Array<number>>) {
         for (let epoc = 0; epoc < this.epocs; epoc++) {
-            console.log(`Epoc: ${epoc+1}`);
+            // console.log(`Epoc: ${epoc + 1}`);
             inputs_arr.forEach((element, i) => {
                 let processed_arr: Array<Array<number>> = [];
                 let processed_answ: Array<Array<number>> = []
@@ -91,8 +94,8 @@ export class NeuralNetV2 {
                 let [res, input_matrix] = this.feedForwad(processed_arr);
                 /*****************************************************/
                 let error: Matrix = Matrix.subtract(res, ans);
-                
-                if ((i + 1) % this.batch_size != 0 && i + 1 != inputs_arr.length){
+
+                if ((i + 1) % this.batch_size != 0 && i + 1 != inputs_arr.length) {
                     // error.show()
                     for (let l = this.layers.length - 1; 0 <= l; l--) {
                         if (l != this.layers.length - 1) {
@@ -110,14 +113,18 @@ export class NeuralNetV2 {
                         } else {
                             gradient = Matrix.multy(gradient, Matrix.transpose(input_matrix));
                         }
-                        this.layer_gradiant[l].show();
-                        gradient.show(); 
                         this.layer_gradiant[l].add(gradient);
                     }
-                }else {
+                } else {
                     for (let l = this.layers.length - 1; 0 <= l; l--) {
                         this.layers[l] = Matrix.subtract(this.layers[l], this.layer_gradiant[l]);
-                        this.layer_gradiant[l] = new Matrix(this.layers[l].getRows(),this.layers[l].getCols())
+                        this.layer_gradiant[l] = new Matrix(
+                            this.layers[l].getRows(),
+                            // we are resseting the layer gradient by ini new matrix
+                            // but the last layer has 1 coll in addition so we check if its the last layer and init with one less
+                            // Math purpouse
+                            l != this.layers.length - 1 ? this.layers[l].getCols() : this.layers[l].getCols() - 1
+                        )
                     }
                 }
             });

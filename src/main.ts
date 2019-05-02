@@ -85,13 +85,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // console.log(accuracy)
 
     // Define network;
-    let ColorClassifier = new NeuralNetV2(3, 2, 2, .001)
+    let ColorClassifier = new NeuralNetV2(3, 2, 600, .01)
     ColorClassifier.setBatchSize(64);
     ColorClassifier.addHiddenLayer(12);
     ColorClassifier.create();
-
+    const start = (new Date()).getTime();
     ColorClassifier.training(trSet, lblSet)
-
+    const end = (new Date()).getTime();
+    console.log(`Training Took ${(end-start)/1000} seconds`);
     let btn = document.querySelector(".predict");
     btn!.addEventListener('click', () => {
         let inputs: any = document.querySelector('.inputs');
