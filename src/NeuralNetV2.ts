@@ -9,13 +9,19 @@ export class NeuralNetV2 {
     private memory: Array<Matrix> = [];
     private activation_func: String = `relu`;
     private epocs: number;
+    private batch_size: number = 1;
+    private layer_gradiant: Array<Matrix> = [];
 
-    constructor(input_nodes: number, out_nodes: number, epocs: number = 100, learning_rate: number = 0.1, activation_function:string="relu") {
+    constructor(input_nodes: number, out_nodes: number, epocs: number = 100, learning_rate: number = 0.1, activation_function: string = "relu") {
         this.input_nodes = input_nodes;
         this.out_nodes = out_nodes;
         this.epocs = epocs;
         this.learning_rate = learning_rate;
         this.activation_func = activation_function;
+    }
+
+    public setBatchSize(size: number = 1): void {
+        this.batch_size = size;
     }
 
     public addHiddenLayer(nodes: number) {
@@ -36,6 +42,7 @@ export class NeuralNetV2 {
     }
     private bootstrap() {
         this.layers.forEach(layer => {
+            this.layer_gradiant.push(new Matrix(layer.getRows(), layer.getCols()));
             layer.randomize();
         });
     }
@@ -51,6 +58,7 @@ export class NeuralNetV2 {
         input_matrix.make(input_arr);
         result = new Matrix(input_matrix.getRows(), input_matrix.getCols());
         result.make(input_matrix.copy());
+
         this.layers.forEach((layer, index: number) => {
             /** Compute every layer */
 
@@ -70,7 +78,8 @@ export class NeuralNetV2 {
     }
 
     public training(inputs_arr: Array<Array<number>>, answers: Array<Array<number>>) {
-        for (let batch = 0; batch < this.epocs; batch++) {
+        for (let epoc = 0; epoc < this.epocs; epoc++) {
+            console.log(`Epoc: ${epoc+1}`);
             inputs_arr.forEach((element, i) => {
                 let processed_arr: Array<Array<number>> = [];
                 let processed_answ: Array<Array<number>> = []
@@ -81,35 +90,42 @@ export class NeuralNetV2 {
 
                 let [res, input_matrix] = this.feedForwad(processed_arr);
                 /*****************************************************/
-
                 let error: Matrix = Matrix.subtract(res, ans);
+                
+                if ((i + 1) % this.batch_size != 0 && i + 1 != inputs_arr.length){
+                    // error.show()
+                    for (let l = this.layers.length - 1; 0 <= l; l--) {
+                        if (l != this.layers.length - 1) {
+                            let prev_l_t = Matrix.transpose(this.layers[l + 1]);
+                            error = Matrix.multy(prev_l_t, error);
+                        }
 
-                for (let l = this.layers.length - 1; 0 <= l; l--) {
+                        let gradient = Matrix.map(this.memory[l], (x: number) => { return x * (1 - x) });
 
-                    if (l != this.layers.length - 1) {
-                        let prev_l_t = Matrix.transpose(this.layers[l + 1]);
-                        error = Matrix.multy(prev_l_t, error);
+                        gradient = Matrix.multyElWise(gradient, error);
+                        gradient = Matrix.multy(gradient, this.learning_rate);
+
+                        if (this.layers.length > 1 && l != 0) {
+                            gradient = Matrix.multy(gradient, Matrix.transpose(this.memory[l - 1]));
+                        } else {
+                            gradient = Matrix.multy(gradient, Matrix.transpose(input_matrix));
+                        }
+                        this.layer_gradiant[l].show();
+                        gradient.show(); 
+                        this.layer_gradiant[l].add(gradient);
                     }
-
-                    let gradient = Matrix.map(this.memory[l], (x: number) => { return x * (1 - x) });
-
-                    gradient = Matrix.multyElWise(gradient, error);
-                    gradient = Matrix.multy(gradient, this.learning_rate);
-
-                    if (this.layers.length > 1 && l != 0) {
-                        gradient = Matrix.multy(gradient, Matrix.transpose(this.memory[l - 1]));
-                    } else {
-                        gradient = Matrix.multy(gradient, Matrix.transpose(input_matrix));
+                }else {
+                    for (let l = this.layers.length - 1; 0 <= l; l--) {
+                        this.layers[l] = Matrix.subtract(this.layers[l], this.layer_gradiant[l]);
+                        this.layer_gradiant[l] = new Matrix(this.layers[l].getRows(),this.layers[l].getCols())
                     }
-
-                    this.layers[l] = Matrix.subtract(this.layers[l], gradient);
                 }
             });
 
         }
     }
 
-    public tester(inputs_arr: Array<Array<number>>, answers: Array<Array<number>> ) {
+    public tester(inputs_arr: Array<Array<number>>, answers: Array<Array<number>>) {
         let truesCount = inputs_arr.length, outputsCount = 0;
 
         inputs_arr.forEach((element, i) => {
@@ -125,7 +141,7 @@ export class NeuralNetV2 {
             if (a == ans.toArray()[0][0]) {
                 outputsCount++;
             }
-            console.log(res.toArray()[0][0],'=-=',ans.toArray()[0][0], " : ", processed_arr)
+            console.log(res.toArray()[0][0], '=-=', ans.toArray()[0][0], " : ", processed_arr)
         });
 
         return outputsCount / truesCount;
@@ -136,7 +152,7 @@ export class NeuralNetV2 {
     }
     public load(neuralString: string) {
         let loadedLayers = JSON.parse(neuralString);
-        loadedLayers.forEach((element:any) => {
+        loadedLayers.forEach((element: any) => {
             let layer: Matrix;
             // const layers_count = this.layers.length;
             layer = new Matrix(element.rows, element.cols)
@@ -161,17 +177,17 @@ export class NeuralNetV2 {
      * @returns {number}
      */
     private relu(x: number): number {
-        return Math.max(0,x);
+        return Math.max(0, x);
     }
 
-    public getActivationFunc(){
+    public getActivationFunc() {
         switch (this.activation_func) {
             case 'relu':
                 return this.relu;
             case 'sigmoid':
                 return this.sigmoid;
             default:
-                throw(`Error: ${this.activation_func} not found!`)
+                throw (`Error: ${this.activation_func} not found!`)
                 break;
         }
     }

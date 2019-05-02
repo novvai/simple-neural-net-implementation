@@ -5,9 +5,6 @@ import { NeuralNetV2 } from "./NeuralNetV2";
 
 document.addEventListener("DOMContentLoaded", () => {
     /** Preprocessing for Color classification problem*/
-    let m = new Matrix(3, 2);
-    let n = new Matrix(3, 2);
-
     let arr = a.split('\n');
     let trSet: any = []
     arr.forEach(element => {
@@ -17,9 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     let lblSet: any = []
     trSet.forEach((el: any) => {
-        lblSet.push([parseInt(el.pop())])
+        const item = parseInt(el.pop()) ? [1, 0] : [0, 1];
+        lblSet.push(item)
     });
-
     trSet.forEach((element: any, i: any) => {
         let minP = 0;
         let maxP = 255;
@@ -27,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return (e - minP) / (maxP - minP)
         })
     });
-
+    // console.log(trSet, lblSet);
 
     let arr2 = tr.split('\n');
     let testSet: any = []
@@ -49,34 +46,34 @@ document.addEventListener("DOMContentLoaded", () => {
         })
     });
     /** Preprocessing for Color classification problem*/
-    
-    /** Training */
-    let and_gate = new NeuralNetV2(2,2,10000);
 
-    // c.feedForwad(v)[0].show();
-    let r = [
-        [1,0],
-        [0,0],
-        [1,1],
-        [0,1]
-    ]
-    // 0 - False  1 - TRUE
-    let d = [
-        [0, 1],
-        [1, 0],
-        [1,0],
-        [0,1]
-    ]
+    // /** Training */
+    // let and_gate = new NeuralNetV2(2,2,10000);
+
+    // // c.feedForwad(v)[0].show();
+    // let r = [
+    //     [1,0],
+    //     [0,0],
+    //     [1,1],
+    //     [0,1]
+    // ]
+    // // 0 - False  1 - TRUE
+    // let d = [
+    //     [0, 1],
+    //     [1, 0],
+    //     [1,0],
+    //     [0,1]
+    // ]
+    // // and_gate.addHiddenLayer(3);
     // and_gate.addHiddenLayer(3);
-    and_gate.addHiddenLayer(3);
-    and_gate.create();
+    // and_gate.create();
 
-    and_gate.training(r,d);
+    // and_gate.training(r,d);
 
-    console.log("FALSE",and_gate.feedForwad([[1],[1]])[0].toArray());
-    console.log("FALSE",and_gate.feedForwad([[0],[0]])[0].toArray());
-    console.log("TRUE",and_gate.feedForwad([[1],[0]])[0].toArray());
-    console.log("TRUE",and_gate.feedForwad([[0],[1]])[0].toArray());
+    // console.log("FALSE",and_gate.feedForwad([[1],[1]])[0].toArray());
+    // console.log("FALSE",and_gate.feedForwad([[0],[0]])[0].toArray());
+    // console.log("TRUE",and_gate.feedForwad([[1],[0]])[0].toArray());
+    // console.log("TRUE",and_gate.feedForwad([[0],[1]])[0].toArray());
 
     // let color_predictor = new NeuralNetV2(3, 1, 150,0.1)
     // color_predictor.load('[{"rows":5,"cols":4,"entries":[[17.76738657339137,16.68376243406083,12.180864605578833,-23.875533995227595],[-1.7080562677296234,7.061104601947024,-24.50126490340943,-2.0023392027795515],[3.285032357411038,-10.731045661181906,2.105280348087547,4.333792991993946],[5.777772311092304,-7.044515122454044,1.5022140442290468,2.2017201919615763],[8.175106622168546,-13.522129501417844,6.616822006462266,3.165785040462681]]},{"rows":1,"cols":6,"entries":[[-10.506699519021508,12.05940161410825,0.7336025047554339,1.0888974147997614,1.6467575859658314,-0.3757861874832358]]}]');
@@ -88,33 +85,34 @@ document.addEventListener("DOMContentLoaded", () => {
     // console.log(accuracy)
 
     // Define network;
-    let ColorClassifier = new NeuralNetV2(3,1,600, .01)
-    ColorClassifier.addHiddenLayer(64);
+    let ColorClassifier = new NeuralNetV2(3, 2, 2, .001)
+    ColorClassifier.setBatchSize(64);
+    ColorClassifier.addHiddenLayer(12);
     ColorClassifier.create();
-    
+
     ColorClassifier.training(trSet, lblSet)
 
     let btn = document.querySelector(".predict");
     btn!.addEventListener('click', () => {
-        let inputs:any = document.querySelector('.inputs');
+        let inputs: any = document.querySelector('.inputs');
         inputs = inputs!.value;
-        
-        let res:HTMLElement|null = document.querySelector('.result');
+
+        let res: HTMLElement | null = document.querySelector('.result');
         console.log(inputs);
 
         res!.style.background = `rgb(${inputs})`;
         inputs = inputs.split(',').map((x: any) => x.trim())
-        inputs.forEach((e: any, i: any) => {
-            inputs[i] = [e / 255];
+        inputs = inputs.map((e: any, i: any) => {
+            return [e / 255]
             // return e;
         });
-        let result = ColorClassifier.feedForwad(inputs)[0].toArray()[0][0];
-        console.log(ColorClassifier.feedForwad(inputs)[0].toArray())
-        if (result > 0.50) {
-            res!.style.color = 'white';
-        } else {
-            res!.style.color = "black";
-        };
+        console.log(inputs);
+
+        console.log(ColorClassifier.feedForwad([...inputs]),inputs);
+        let result = ColorClassifier.feedForwad(inputs)[0].toArray();
+        console.table(result);
+        let isBlack = (result[1][0] > result[0][0]);
+        res!.style.color = (isBlack) ? "black" : "white";
     })
 
 
